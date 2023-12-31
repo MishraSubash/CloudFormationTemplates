@@ -5,7 +5,7 @@ Welcome to the repository containing AWS CloudFormation templates categorized by
 This repository serves as a centralized location for CloudFormation templates organized by different categories, making it easier to find and use templates based on specific AWS resource provisioning needs.
 
 ## Structure
-  - **Basic Templates**: Contains CloudFormation templates demonstrating the use of conditions for resource creation.
+  - **[Basic Templates](https://github.com/MishraSubash/CloudFormationTemplates/tree/main/01-BasicTemplates)**: Contains CloudFormation templates demonstrating the use of conditions for resource creation.
   - **Parameters**: Templates illustrating the use of parameters to customize resource configurations.
   - **Conditions**: CloudFormation templates demonstrating the use of Conditions in AWS CloudFormation, allowing for resource provisioning based on specific conditions.
   - **Mappings**: It contains templates showcasing how Mappings can be utilized within CloudFormation to simplify resource provisioning by defining key-value pairs.
