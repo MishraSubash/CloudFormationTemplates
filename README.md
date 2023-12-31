@@ -1,5 +1,5 @@
 ## AWS CloudFormation Templates Repository
-Welcome to repository containing AWS CloudFormation templates categorized by different sections! This repository hosts a collection of templates to help you provision various AWS resources using CloudFormation.
+Welcome to the repository containing AWS CloudFormation templates categorized by different sections! This repository hosts a collection of templates to help you provision various AWS resources using CloudFormation.
 
 ### Introduction
 This repository serves as a centralized location for CloudFormation templates organized by different categories, making it easier to find and use templates based on specific AWS resource provisioning needs.
@@ -21,6 +21,3 @@ Each category directory contains its respective CloudFormation templates. To use
 
 ## Contributing
 Welcome contributions! If you have additional CloudFormation templates, improvements, or suggestions, feel free to submit a pull request or open an issue.
-
-## License
-This repository is licensed under the MIT License.
