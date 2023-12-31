@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: CFN Init Demo
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources: 
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: My SG with port 22, 8080 and 80 inbound
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8080'          
+          ToPort: '8080'
+          CidrIp: 0.0.0.0/0
+
+  MyVMInstance:
+    Type: AWS::EC2::Instance
+    Metadata: 
+      Comment: deploy a simple TOMCAST Application
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum: 
+              java-1.8.0-openjdk.x86_64: []
+              java-1.8.0-openjdk-devel: []
+              tomcast: []
+          groups:
+            groupone: {}
+            grouptwo: 
+              gid: "501"
+          users: 
+            # users key create Linix/unix users in EC2 instance. windows doesn't support users.
+            # user group can have "uid", "groups", "homeDir" attribute
+            user1:
+              groups: 
+                - groupone
+                - grouptwo
+              uid: "501"
+              homeDir: "/tmp"
+          sources: 
+          # Source keys are supported in both Linux and windows machine.
+          # supported formats are tar, tar+gzip, tar+bz2, and zip 
+            /tmp: "https://cfn-init-199023.s3.amazonaws.com/demo1.zip"
+          files: 
+          # file content can be inline or from URL
+          # Files are written to disk in alphebetical order
+          # Supported Keys: content, source, Encoding, group, owner, mode, authentication, context
+          
+          commands: 
+          services: 
+          
+    Properties:
+      ImageId: ami-05c13eab67c5d8861
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SecurityGroups:
+        - !Ref MySecurityGroup

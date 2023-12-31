@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: 2010-09-09
+# This template would assign same Keyname for two AWS regions
+# Req: AWS account should have same keyname created in both regions
+Parameters: 
+  EnvironmentName: 
+    Description: Select an Environment
+    Type: String
+    Default: dev
+    AllowedValues: 
+      - dev
+      - prod
+      - qa
+    ConstraintDescription: Environament Types Dev, Prod, and Qa
+
+Mappings:
+  MyRegionMap:
+    us-east-1:
+      HVM64: ami-01bc990364452ab3e
+    us-west-1:
+      HVM64: ami-09ab9d570789dfdd4
+
+  MyEnvironmentMap: 
+    dev: 
+      instanceType: t2.micro
+    prod:
+      instanceType: t2.small
+    qa:
+      instanceType: t2.medium
+
+Conditions: 
+
+  CreateEIPforProd: !Equals [!Ref EnvironmentName, prod]
+  CreateProdSecurityGroup: !Equals [!Ref EnvironmentName, prod]
+  CreateDevSecurityGroup: !Not [{Condition: CreateProdSecurityGroup}]
+  # This condition reads as if region equals to east-1 or west-1
+  # assign same keypair (Req: shoould have same KeyName for both AWS region both reion )
+  IfRegionsUseKeyName: !Or [!Equals [!Ref 'AWS::Region', us-east-1], !Equals [!Ref 'AWS::Region', us-west-1]]
+
+Resources:
+  MyVMInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap
+        - MyRegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: !FindInMap
+        - MyEnvironmentMap
+        - !Ref EnvironmentName
+        - instanceType
+      # if region (logic from line 37) IfRegionsUseKeyName yeilds True, then use keypair else use keypair2
+      KeyName: !If [IfRegionsUseKeyName, keypair, keypair2]
+      SecurityGroups: !If [CreateDevSecurityGroup, [!Ref DevEnvSecurityGroup], [!Ref ProdEnvSecurityGroup]]
+
+  MyProdEIP: 
+    Type: AWS::EC2::EIP
+    Condition: CreateEIPforProd
+    Properties:
+      InstanceId: !Ref MyVMInstance
+  
+  DevEnvSecurityGroup: 
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateDevSecurityGroup
+    Properties: 
+      GroupDescription: DevSG
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+
+  ProdEnvSecurityGroup: 
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateProdSecurityGroup
+    Properties: 
+      GroupDescription: prodSG
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0

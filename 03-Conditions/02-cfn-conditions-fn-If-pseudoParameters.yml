@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters: 
+  MyKeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Select a Keypair
+
+  EnvironmentName: 
+    Description: Select an Environment
+    Type: String
+    Default: dev
+    AllowedValues: 
+      - dev
+      - prod
+
+Mappings:
+  MyRegionMap:
+    us-east-1:
+      HVM64: ami-01bc990364452ab3e
+    us-west-1:
+      HVM64: ami-09ab9d570789dfdd4
+
+  MyEnvironmentMap: 
+    dev: 
+      instanceType: t2.micro
+    prod:
+      instanceType: t2.small
+
+Conditions: 
+# Create Elastic IP when environament equals Prod
+  CreateEIPforProd: !Equals [!Ref EnvironmentName, prod]
+# Create Security Group when Environment equals Dev
+  CreateDevSecurityGroup: !Equals [!Ref EnvironmentName, dev]
+
+Resources:
+  MyVMInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap
+        - MyRegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: !FindInMap
+        - MyEnvironmentMap
+        - !Ref EnvironmentName
+        - instanceType
+      KeyName: !Ref MyKeyName
+      # Attach Security Group If env is Dev otherwise no value (skip it - Pseudo Parameter No Value)
+      SecurityGroups: !If [CreateDevSecurityGroup, [!Ref DevEnvSecurityGroup], !Ref 'AWS::NoValue']
+
+  MyProdEIP: 
+    Type: AWS::EC2::EIP
+    Condition: CreateEIPforProd
+    Properties:
+      InstanceId: !Ref MyVMInstance
+  
+  DevEnvSecurityGroup: 
+    Type: AWS::EC2::SecurityGroup
+    # When Dev is selected from line 32; then create Dev SG
+    Condition: CreateDevSecurityGroup
+    Properties: 
+      GroupDescription: DevSG
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0

@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: 2010-09-09
+# Mappings is essentially allowed AWS to create resources based 
+# on condition supplied in templates.
+# In this example: if resources are created in east-1 pick east-1 ami
+# and if resources are created in west-1 region pick west-1 ami ID. 
+# we have passed the dynamic variable region value as FindInMap in
+# ImageId under resources section.
+
+Parameters: 
+# KeyName parameter became mandatory here because
+# we have two regions where AWS resources are going to be created.
+  MyKeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Select a Keypair
+
+
+Mappings:
+  MyRegionMap:
+    us-east-1:
+    # HVM64 is a variable name. it could be any name.
+      HVM64: ami-01bc990364452ab3e
+    us-west-1:
+      HVM64: ami-09ab9d570789dfdd4
+
+Resources:
+  MyVMInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap
+      # MyregionMap: It selects two regions from above mapping (east-1 or west-1)
+      # !Ref 'AWS::Region': it specifies above two values are region code. 
+      # HVM64: select AMI value based on MyRegionMap & 'AWS::Region'
+        - MyRegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: t2.micro
+      KeyName: !Ref MyKeyName

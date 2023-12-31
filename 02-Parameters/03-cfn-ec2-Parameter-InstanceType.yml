@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AZ Parameterization
+
+Parameters: 
+  MyKeyName:
+    Description: Select the desired key name
+    Type: AWS::EC2::KeyPair::KeyName
+  
+  MyAvailabilityZone:
+    Description: Select an AZ
+    Type: String
+    # if nothing selected default to us-east-1a
+    Default: us-east-1a
+    AllowedValues:
+    # AZ selection options
+      - us-east-1a
+      - us-east-1b
+      - us-east-1c
+  
+  MyInstanceType:
+    Description: Select an Instance Type
+    Type: String
+    Default: t2.micro
+    AllowedValues: 
+      - t2.micro
+      - t2.small
+
+Resources:
+  DevEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-01bc990364452ab3e
+      InstanceType: !Ref MyInstanceType
+      KeyName: !Ref MyKeyName
+      SecurityGroups: 
+        - default
+        - !Ref SSHSecurityGroup
+      AvailabilityZone: !Ref MyAvailabilityZone
+
+      
+  SSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: My NEW SSH Security Groups
+      # OutBound is all open in custom Security Groups
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0

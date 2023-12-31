@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters: 
+  MyKeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Select a Keypair
+
+  EnvironmentName: 
+  # This section became mandatory as we are going to include Env type
+    Description: Select an Environment
+    Type: String
+    Default: dev
+    AllowedValues: 
+      - dev
+      - prod
+
+Mappings:
+  MyRegionMap:
+    us-east-1:
+      HVM64: ami-01bc990364452ab3e
+    us-west-1:
+      HVM64: ami-09ab9d570789dfdd4
+
+  MyEnvironmentMap: 
+    dev: 
+      instanceType: t2.micro
+    prod:
+      instanceType: t2.small
+
+Conditions: 
+  CreateEIPforProd: !Equals [!Ref EnvironmentName, prod]
+
+Resources:
+  MyVMInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap
+        - MyRegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: !FindInMap
+        - MyEnvironmentMap
+        - !Ref EnvironmentName
+        # variable names are passed without Ref
+        - instanceType
+      KeyName: !Ref MyKeyName
+
+  MyProdEIP: 
+    Type: AWS::EC2::EIP
+    Condition: CreateEIPforProd
+    Properties:
+      InstanceId: !Ref MyVMInstance
